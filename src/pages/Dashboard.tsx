@@ -1,8 +1,7 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
 
-// A small helper component for the Status Badge
+// Keep the StatusBadge helper - it's great!
 const StatusBadge = ({ status }) => {
   const styles = {
     "In Review": "bg-blue-100 text-blue-800 border-blue-200",
@@ -21,57 +20,41 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-export default function Dashboard() {
-  const navigate = useNavigate();
-  const mockRFCs = [
-    {
-      id: "RFC-101",
-      title: "Update Auth Logic",
-      status: "In Review",
-      jira: "PROJ-12",
-    },
-    {
-      id: "RFC-102",
-      title: "AWS Migration Phase 1",
-      status: "Draft",
-      jira: "CLOUD-44",
-    },
-    {
-      id: "RFC-103",
-      title: "API Rate Limiting",
-      status: "Approved",
-      jira: "PROJ-88",
-    },
-  ];
+export default function Dashboard({ rfcs }) { // Accept 'rfcs' prop from App.jsx
+  
+  // Dynamic Metrics Calculation
+  const totalRequests = rfcs.length;
+  const activeJira = rfcs.filter(r => r.jiraTicket || r.jira).length;
+  const awaitingApproval = rfcs.filter(r => r.status === "Pending" || r.status === "In Review").length;
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <PageHeader
         title="BrightFlow Dashboard"
-        subtitle="Dashboard for BrightFlow"
+        subtitle="Real-time RFC tracking & metrics"
         buttonText="+ New RFC"
-        buttonPath="create"
+        buttonPath="/create"
       />
 
-      {/* Metrics Row */}
+      {/* Dynamic Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-blue-400">
           <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">
-            Pending Requests
+            Total Requests
           </p>
-          <p className="text-3xl font-black text-gray-800">12</p>
+          <p className="text-3xl font-black text-gray-800">{totalRequests}</p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-green-400">
           <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">
             Active Jira Links
           </p>
-          <p className="text-3xl font-black text-gray-800">8</p>
+          <p className="text-3xl font-black text-gray-800">{activeJira}</p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-yellow-400">
           <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">
             Awaiting Approval
           </p>
-          <p className="text-3xl font-black text-gray-800">4</p>
+          <p className="text-3xl font-black text-gray-800">{awaitingApproval}</p>
         </div>
       </div>
 
@@ -80,22 +63,14 @@ export default function Dashboard() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                ID
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                Title
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                Jira Ticket
-              </th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">ID</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Title</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Jira Ticket</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {mockRFCs.map((rfc) => (
+            {rfcs.map((rfc) => (
               <tr
                 key={rfc.id}
                 className="hover:bg-blue-50/50 transition-colors cursor-pointer group"
@@ -112,15 +87,22 @@ export default function Dashboard() {
                   <StatusBadge status={rfc.status} />
                 </td>
                 <td className="px-6 py-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
                     <span className="w-2 h-2 rounded-full bg-blue-400"></span>
-                    {rfc.jira}
+                    {rfc.jiraTicket || rfc.jira || "Not Linked"}
                   </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+
+        {/* Empty State */}
+        {rfcs.length === 0 && (
+          <div className="p-12 text-center">
+            <p className="text-gray-500 italic">No RFCs created yet. Start by clicking "+ New RFC".</p>
+          </div>
+        )}
       </div>
     </div>
   );
