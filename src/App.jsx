@@ -4,6 +4,8 @@ import Login from './pages/Login';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import CreateRFC from './pages/CreateRFC';
+import Users from './pages/Users';
+import CreateUser from './pages/CreateUser'
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -22,7 +24,8 @@ function App() {
             
             {/* Future pages go here */}
             <Route path="/sync" element={<div className="p-8">Jira Syncing Coming Soon...</div>} />
-            <Route path="/people" element={<div className="p-8">People Directory Coming Soon...</div>} />
+            <Route path="/users" element={<Users />} />
+            <Route path="/users/new" element={<CreateUser />} />
             
             {/* Redirect any 404s to Dashboard */}
             <Route path="*" element={<Navigate to="/" />} />

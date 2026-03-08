@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageHeader from "../components/PageHeader";
 
 export default function CreateRFC({ onCancel, onSubmit }) {
   const [formData, setFormData] = useState({
@@ -10,6 +11,8 @@ export default function CreateRFC({ onCancel, onSubmit }) {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
+      <PageHeader title="BrightFlow Create New RFC" subtitle="Create New RFC" />
+      
       <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
         <div className="p-8">
           <div className="flex justify-between items-center mb-6">
