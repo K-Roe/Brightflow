@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+/* Point this to your config file */
+@config "../tailwind.config.js";
+
+/* Add this to make sure Tailwind 'scans' your components */
+@source "../index.html";
+@source "./**/*.{js,ts,jsx,tsx}";
