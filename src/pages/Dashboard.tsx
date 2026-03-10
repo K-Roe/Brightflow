@@ -1,7 +1,9 @@
 import React from "react";
 import PageHeader from "../components/PageHeader";
 
-// Keep the StatusBadge helper - it's great!
+// Todo add to this page so it shows the info only for the user unless they are manager and if so allow them to see everything they choise to
+
+
 const StatusBadge = ({ status }) => {
   const styles = {
     "In Review": "bg-blue-100 text-blue-800 border-blue-200",

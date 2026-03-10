@@ -9,6 +9,7 @@ export default function Layout({ onLogout }) {
     { name: 'Create RFC', path: '/create' },
     { name: 'Jira Sync', path: '/sync' },
     { name: 'Users', path: '/users' },
+    { name: 'Department Permissons', path: '/permissons' },
     { name: 'Build Form', path: '/buildForm'}
   ];
 
