@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import CreateRFC from './pages/CreateRFC';
 import Users from './pages/Users';
 import CreateUser from './pages/CreateUser';
+import FormArchitect from './pages/FormArchitect';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -72,9 +73,11 @@ function App() {
             
             {/* Users get the users list */}
             <Route path="/users" element={<Users users={users} />} />
-            
+
             {/* CreateUser gets the add function */}
             <Route path="/users/new" element={<CreateUser onSubmit={handleAddUser} />} />
+
+            <Route path="/buildForm" element={<FormArchitect />} />
             
             <Route path="*" element={<Navigate to="/" />} />
           </Route>
