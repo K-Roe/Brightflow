@@ -1,87 +1,76 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './pages/Login';
-import Layout from './components/Layout';
-import Dashboard from './pages/Dashboard';
-import CreateRFC from './pages/CreateRFC';
-import Users from './pages/Users';
-import CreateUser from './pages/CreateUser';
-import FormArchitect from './pages/FormArchitect';
-import Permissons from './pages/Permissions';
+import React, { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+// Import Pages
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Layout from "./components/Layout";
+import Dashboard from "./pages/Dashboard";
+import CreateRFC from "./pages/CreateRFC";
+import Users from "./pages/Users";
+import CreateUser from "./pages/CreateUser";
+import FormArchitect from "./pages/FormArchitect";
+import Permissons from "./pages/Permissions";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  // --- 1. USER STATE (Local Storage) ---
-  const [users, setUsers] = useState(() => {
-    const saved = localStorage.getItem('bf_users');
-    return saved ? JSON.parse(saved) : [
-      { id: "01", name: "Karl Aboltins-Roe", email: "Karl@test.com", username: "KR1", department: "Development" },
-      { id: "02", name: "Alex Blake", email: "Alex@test.com", username: "AK2", department: "Accounting" }
-    ];
-  });
-
-  // --- 2. RFC STATE (Local Storage) ---
-  const [rfcs, setRfcs] = useState(() => {
-    const saved = localStorage.getItem('bf_rfcs');
-    return saved ? JSON.parse(saved) : [
-      { id: 'RFC-101', title: 'Update Auth Logic', status: 'In Review', jira: 'PROJ-12' },
-      { id: 'RFC-102', title: 'AWS Migration Phase 1', status: 'Draft', jira: 'CLOUD-44' }
-    ];
-  });
-
-  // --- 3. PERSISTENCE (Auto-save to browser) ---
-  useEffect(() => {
-    localStorage.setItem('bf_users', JSON.stringify(users));
-  }, [users]);
+  const [loading, setLoading] = useState(true); // 1. Added loading state
+  const [users, setUsers] = useState([]);
+  const [rfcs, setRfcs] = useState([]);
 
   useEffect(() => {
-    localStorage.setItem('bf_rfcs', JSON.stringify(rfcs));
-  }, [rfcs]);
+    const token = localStorage.getItem("token");
+    if (token) {
+      setIsLoggedIn(true);
+      fetchData(token);
+    } else {
+      setLoading(false); // 2. No token, finish loading immediately
+    }
+  }, []);
 
-  // --- 4. HANDLERS (The "Plumbing") ---
-  const handleAddUser = (userData) => {
-    const newUser = {
-      ...userData,
-      id: (users.length + 1).toString().padStart(2, '0')
-    };
-    setUsers([...users, newUser]);
+  const fetchData = async (token) => {
+    try {
+      const [userRes, rfcRes] = await Promise.all([
+        fetch('/api/users', { headers: { 'Authorization': `Bearer ${token}` }}),
+        fetch('/api/rfcs', { headers: { 'Authorization': `Bearer ${token}` }})
+      ]);
+      
+      if (userRes.ok) setUsers(await userRes.json());
+      if (rfcRes.ok) setRfcs(await rfcRes.json());
+    } catch (err) {
+      console.error("Data fetch failed", err);
+    } finally {
+      setLoading(false); // 3. Finished checking
+    }
   };
 
-  const handleAddRFC = (rfcData) => {
-    const newRFC = {
-      ...rfcData,
-      id: `RFC-${rfcs.length + 101}`,
-      status: 'Draft' // Default status for new ones
-    };
-    setRfcs([...rfcs, newRFC]);
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setIsLoggedIn(false);
   };
+
+  // 4. Show a loading screen while checking auth
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading BrightFlow...</div>;
+  }
 
   return (
     <BrowserRouter>
       <Routes>
-        {!isLoggedIn ? (
-          <Route path="*" element={<Login onLogin={() => setIsLoggedIn(true)} />} />
-        ) : (
-          <Route element={<Layout onLogout={() => setIsLoggedIn(false)} />}>
-            {/* Dashboard gets the RFCs list */}
+        <Route path="/login" element={<Login onLogin={() => setIsLoggedIn(true)} />} />
+        <Route path="/register" element={<Register />} />
+        
+        {/* Redirect logic now waits for loading to finish */}
+        <Route path="*" element={isLoggedIn ? <Navigate to="/" /> : <Navigate to="/login" />} />
+
+        {isLoggedIn && (
+          <Route element={<Layout onLogout={handleLogout} />}>
             <Route path="/" element={<Dashboard rfcs={rfcs} />} />
-            
-            {/* CreateRFC gets the add function */}
-            <Route path="/create" element={<CreateRFC onSubmit={handleAddRFC} />} />
-            
-            <Route path="/sync" element={<div className="p-8 text-blue-900 font-bold">Jira Syncing Coming Soon...</div>} />
-            
-            {/* Users get the users list */}
+            <Route path="/create" element={<CreateRFC />} />
             <Route path="/users" element={<Users users={users} />} />
-
-            {/* CreateUser gets the add function */}
-            <Route path="/users/new" element={<CreateUser onSubmit={handleAddUser} />} />
-
+            <Route path="/users/new" element={<CreateUser />} />
             <Route path="/buildForm" element={<FormArchitect />} />
             <Route path="/Permissons" element={<Permissons />} />
-            
-            <Route path="*" element={<Navigate to="/" />} />
           </Route>
         )}
       </Routes>
