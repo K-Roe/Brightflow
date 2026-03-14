@@ -31,8 +31,8 @@ function App() {
   const fetchData = async (token) => {
     try {
       const [userRes, rfcRes] = await Promise.all([
-        fetch('/api/users', { headers: { 'Authorization': `Bearer ${token}` }}),
-        fetch('/api/rfcs', { headers: { 'Authorization': `Bearer ${token}` }})
+        // fetch('/api/users', { headers: { 'Authorization': `Bearer ${token}` }}),
+        // fetch('/api/rfcs', { headers: { 'Authorization': `Bearer ${token}` }})
       ]);
       
       if (userRes.ok) setUsers(await userRes.json());

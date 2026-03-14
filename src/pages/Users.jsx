@@ -1,8 +1,37 @@
-import React from "react";
+import React, {useState, useEffect} from "react";
 import PageHeader from "../components/PageHeader";
 
-export default function Users({ users }) { // Component now uses the live 'users' from App.jsx
+export default function Users() { // Component now uses the live 'users' from App.jsx
+  const [users, setUsers] = useState([]);
+  const [usersError, setUsersError] = useState("");
+  const [loadingUsers, setLoadingUsers] = useState(true);
   
+  
+  
+    useEffect(() => {
+      const fetchUsers = async () => {
+        try {
+          setLoadingUsers(true);
+          setUsersError("");
+  
+          const response = await fetch("/api/getAllUsers");
+          const data = await response.json();
+  
+          if (!response.ok) {
+            throw new Error(data.message || "Failed to load Users");
+          }
+  
+          setUsers(Array.isArray(data) ? data : data.users || []);
+        } catch (error) {
+          console.error(error);
+          setUsersError(error.message || "Something went wrong while loading templates");
+        } finally {
+          setLoadingUsers(false);
+        }
+      };
+  
+      fetchUsers();
+    }, []);
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <PageHeader
