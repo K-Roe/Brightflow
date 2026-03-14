@@ -12,6 +12,9 @@ const PERMISSIONS_LIST = [
 export default function Permissions() {
   const [selectedDept, setSelectedDept] = useState("");
   const [permissions, setPermissions] = useState({});
+  const [loadingDepartments, setLoadingDepartments]  = useState(true);
+  const [departmentError, setDepartmentError]  = useState('');
+  const [departments, setDepartments] = useState([]);
 
   // This effect runs every time the department changes
   useEffect(() => {
@@ -25,6 +28,31 @@ export default function Permissions() {
       setPermissions({}); 
     }
   }, [selectedDept]);
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        setLoadingDepartments(true);
+        setDepartmentError("");
+
+        const response = await fetch("/api/getAllDepartments");
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to load departments");
+        }
+
+        setDepartments(Array.isArray(data.departments) ? data.departments : []);
+      } catch (error) {
+        console.error(error);
+        setDepartmentError(error.message || "Something went wrong while loading departments");
+      } finally {
+        setLoadingDepartments(false);
+      }
+    };
+
+    fetchDepartments();
+  }, []);
 
   const handleToggle = (permissionId) => {
     setPermissions((prev) => ({
@@ -46,8 +74,8 @@ export default function Permissions() {
             className="mt-2 block w-full border-2 border-blue-500 rounded-lg p-3 bg-white font-medium focus:ring-2 focus:ring-blue-200 outline-none"
           >
             <option value="">-- Choose Department --</option>
-            {DEPARTMENTS.map((dept) => (
-              <option key={dept} value={dept}>{dept}</option>
+            {departments.map((dept) => (
+              <option key={dept.id} value={dept.id}>{dept.department}</option>
             ))}
           </select>
         </div>
