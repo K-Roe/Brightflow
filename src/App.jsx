@@ -10,71 +10,110 @@ import CreateRFC from "./pages/CreateRFC";
 import Users from "./pages/Users";
 import CreateUser from "./pages/CreateUser";
 import FormArchitect from "./pages/FormArchitect";
-import Permissons from "./pages/Permissions";
+import Permissions from "./pages/Permissions";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(true); // 1. Added loading state
+  const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
-  const [rfcs, setRfcs] = useState([]);
+  const [user, setUser] = useState(null);
+  const [userPermissions, setUserPermissions] = useState([]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+    const storedPermissions = localStorage.getItem("permissions");
     if (token) {
       setIsLoggedIn(true);
+
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+
+      if (storedPermissions) {
+        setUserPermissions(JSON.parse(storedPermissions));
+      }
+
       fetchData(token);
     } else {
-      setLoading(false); // 2. No token, finish loading immediately
+      setLoading(false);
     }
   }, []);
 
   const fetchData = async (token) => {
     try {
-      const [userRes, rfcRes] = await Promise.all([
-        // fetch('/api/users', { headers: { 'Authorization': `Bearer ${token}` }}),
-        // fetch('/api/rfcs', { headers: { 'Authorization': `Bearer ${token}` }})
-      ]);
-      
-      if (userRes.ok) setUsers(await userRes.json());
-      if (rfcRes.ok) setRfcs(await rfcRes.json());
+      const requests = [];
+
+      const results = await Promise.all(requests);
+
+      console.log(results);
     } catch (err) {
       console.error("Data fetch failed", err);
     } finally {
-      setLoading(false); // 3. Finished checking
+      setLoading(false);
     }
   };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("permissions");
     setIsLoggedIn(false);
+    setUser(null);
+    setUserPermissions([]);
   };
 
-  // 4. Show a loading screen while checking auth
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading BrightFlow...</div>;
+    return (
+        <div className="min-h-screen flex items-center justify-center">
+          Loading BrightFlow...
+        </div>
+    );
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login onLogin={() => setIsLoggedIn(true)} />} />
-        <Route path="/register" element={<Register />} />
-        
-        {/* Redirect logic now waits for loading to finish */}
-        <Route path="*" element={isLoggedIn ? <Navigate to="/" /> : <Navigate to="/login" />} />
+      <BrowserRouter>
+        <Routes>
+          <Route
+              path="/login"
+              element={
+                <Login
+                    onLogin={(loggedInUser) => {
+                      setIsLoggedIn(true);
+                      setUser(loggedInUser || null);
+                      setUserPermissions(loggedInUser?.permissions || []);
+                    }}
+                />
+              }
+          />
 
-        {isLoggedIn && (
-          <Route element={<Layout onLogout={handleLogout} />}>
-            <Route path="/" element={<Dashboard rfcs={rfcs} />} />
-            <Route path="/create" element={<CreateRFC />} />
-            <Route path="/users" element={<Users users={users} />} />
-            <Route path="/users/new" element={<CreateUser />} />
-            <Route path="/buildForm" element={<FormArchitect />} />
-            <Route path="/Permissons" element={<Permissons />} />
-          </Route>
-        )}
-      </Routes>
-    </BrowserRouter>
+          <Route path="/register" element={<Register />} />
+
+          <Route
+              path="*"
+              element={isLoggedIn ? <Navigate to="/" /> : <Navigate to="/login" />}
+          />
+
+          {isLoggedIn && (
+              <Route
+                  element={
+                    <Layout
+                        onLogout={handleLogout}
+                        user={user}
+                        userPermissions={userPermissions}
+                    />
+                  }
+              >
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/create" element={<CreateRFC />} />
+                <Route path="/users" element={<Users users={users} />} />
+                <Route path="/users/new" element={<CreateUser />} />
+                <Route path="/buildForm" element={<FormArchitect />} />
+                <Route path="/permissions" element={<Permissions />} />
+              </Route>
+          )}
+        </Routes>
+      </BrowserRouter>
   );
 }
 

@@ -52,7 +52,9 @@ export default function Login({ onLogin }) {
       }
 
       localStorage.setItem('token', data.access_token);
-      onLogin?.();
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("permissions", JSON.stringify(data.user.permissions || []));
+      onLogin?.(data.user);
       navigate('/');
     } catch (err) {
       setError('Unable to sign in right now. Please try again.');

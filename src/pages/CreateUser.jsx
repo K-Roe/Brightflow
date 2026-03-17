@@ -8,9 +8,6 @@ export default function CreateUser({ onSubmit }) {
   const [departmentError, setDepartmentError]  = useState('');
   const [departments, setDepartments] = useState([]);
 
-
-
-
   useEffect(() => {
     const fetchDepartments = async () => {
       try {

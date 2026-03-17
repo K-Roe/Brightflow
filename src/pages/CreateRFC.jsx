@@ -299,19 +299,52 @@ export default function CreateRFC({ onSubmit }) {
     }
 
     try {
-      if (onSubmit) {
-        onSubmit(formData);
-      } else {
-        console.log("Submitting RFC data:", formData);
+      const token = localStorage.getItem("token");
+      const payload = new FormData();
+
+      payload.append("template_id", selectedTemplate.id);
+      payload.append("application", selectedTemplate.app_name);
+
+      (selectedTemplate.fields || []).forEach((field) => {
+        if (!field?.name || field.type === "section") {
+          return;
+        }
+
+        const value = formData[field.name];
+
+        if (field.type === "image-upload" || field.type === "file-upload") {
+          const files = Array.isArray(value) ? value : [];
+          files.forEach((file) => {
+            payload.append(field.name, file);
+          });
+        } else if (field.type === "checkbox") {
+          payload.append(field.name, value ? "1" : "0");
+        } else {
+          payload.append(field.name, value ?? "");
+        }
+      });
+
+      const response = await fetch("/api/rfcs", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: payload,
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(data?.message || "Failed to save RFC");
       }
 
       navigate("/");
     } catch (error) {
       console.error(error);
-      alert("Failed to submit RFC");
+      alert(error.message || "Failed to submit RFC");
     }
   };
-
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <PageHeader title="RFC Builder" subtitle="Create RFC" />
